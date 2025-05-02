@@ -39,14 +39,34 @@ class DocumentCard extends StatelessWidget {
           _getAssetForType(docType),
           width: 32,
           height: 32,
-          colorFilter: const ColorFilter.mode(
-            Colors.blueAccent,
-            BlendMode.srcIn,
-          ),
         ),
         title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
-        subtitle: Text('Par $author\nModifié : $lastModified'),
-        isThreeLine: true,
+        subtitle: Padding(
+          padding: const EdgeInsets.only(top: 4),
+          child: Row(
+            children: [
+              Text(lastModified, style: Theme.of(context).textTheme.bodySmall),
+              const SizedBox(width: 6),
+              SvgPicture.asset(
+                'assets/CircleFill.svg',
+                width: 6,
+                height: 6,
+                colorFilter: const ColorFilter.mode(
+                  Colors.grey,
+                  BlendMode.srcIn,
+                ),
+              ),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  author,
+                  style: Theme.of(context).textTheme.bodySmall,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+        ),
         trailing: const Icon(Icons.arrow_forward_ios, size: 16),
       ),
     );

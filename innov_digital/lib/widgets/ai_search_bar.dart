@@ -15,16 +15,25 @@ class AISearchBar extends StatelessWidget {
             'assets/Robot.svg',
             width: 24,
             height: 24,
-            // Optional: Set icon color
           ),
         ),
         suffixIcon: Padding(
-          padding: const EdgeInsets.all(10.0),
-          child: SvgPicture.asset(
-            'assets/microphone-2.svg',
-            width: 24,
-            height: 24,
-            
+          padding: const EdgeInsets.only(right: 10.0),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SvgPicture.asset(
+                'assets/microphone-2.svg',
+                width: 24,
+                height: 24,
+              ),
+              const SizedBox(width: 12),
+              SvgPicture.asset(
+                'assets/send.svg',
+                width: 24,
+                height: 24,
+              ),
+            ],
           ),
         ),
         filled: true,
