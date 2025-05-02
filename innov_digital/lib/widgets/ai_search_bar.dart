@@ -8,14 +8,10 @@ class AISearchBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return TextField(
       decoration: InputDecoration(
-        hintText: 'Ask the AI assistant...',
+        hintText: 'Ask me anything...',
         prefixIcon: Padding(
           padding: const EdgeInsets.all(10.0),
-          child: SvgPicture.asset(
-            'assets/Robot.svg',
-            width: 24,
-            height: 24,
-          ),
+          child: SvgPicture.asset('assets/Robot.svg', width: 24, height: 24),
         ),
         suffixIcon: Padding(
           padding: const EdgeInsets.only(right: 10.0),
@@ -28,11 +24,7 @@ class AISearchBar extends StatelessWidget {
                 height: 24,
               ),
               const SizedBox(width: 12),
-              SvgPicture.asset(
-                'assets/send.svg',
-                width: 24,
-                height: 24,
-              ),
+              SvgPicture.asset('assets/send.svg', width: 24, height: 24),
             ],
           ),
         ),
