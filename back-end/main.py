@@ -7,7 +7,7 @@ from flask import Flask, request, jsonify
 from werkzeug.utils import secure_filename
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from models import Base, Document
+from models import Base, Document, DocumentVersion  # Ajoute DocumentVersion ici
 from datetime import datetime
 
 # Import des modèles de traitement
@@ -104,35 +104,56 @@ def upload_file():
         keywords = filter_keywords(extract_keywords_yake(cleaned))
         kw_string = ", ".join([kw for kw, _ in keywords])
 
-        # Ajout de la date d'upload
+        # Date d'upload
         upload_time = datetime.utcnow()
 
-        # Insertion dans la base de données
+        # Vérifier si le document existe déjà
         db = SessionLocal()
-        doc = Document(
+        doc = db.query(Document).filter(Document.filename == file.filename).first()
+
+        if doc is None:
+            # Si le document n'existe pas encore, on le crée
+            doc = Document(
+                filename=file.filename,
+                uploader=uploader,
+                content=cleaned,
+                keywords=kw_string,
+                uploaded_at=upload_time
+            )
+            db.add(doc)
+            db.commit()
+            db.refresh(doc)
+        
+        # Création de la nouvelle version
+        last_version = db.query(DocumentVersion).filter(DocumentVersion.document_id == doc.id).order_by(DocumentVersion.version_number.desc()).first()
+        version_number = last_version.version_number + 1 if last_version else 1
+        
+        new_version = DocumentVersion(
+            document_id=doc.id,
+            version_number=version_number,
             filename=file.filename,
-            uploader=uploader,
             content=cleaned,
             keywords=kw_string,
-            uploaded_at=upload_time  # Date d'upload
+            uploaded_at=upload_time
         )
-        db.add(doc)
+        
+        db.add(new_version)
         db.commit()
-        db.refresh(doc)
+        db.refresh(new_version)
+
         db.close()
 
         return jsonify({
-            "message": "Fichier traité avec succès.",
             "filename": file.filename,
             "uploader": uploader,
             "keywords": [kw for kw, _ in keywords],
-            "extracted_text": cleaned,  # Ajout du texte extrait
-            "uploaded_at": upload_time.isoformat()  # Date et heure de l'upload
+            "extracted_text": cleaned,
+            "uploaded_at": upload_time.isoformat(),
+            "version_number": version_number
         })
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
 
 if __name__ == '__main__':
     app.run(debug=True)
