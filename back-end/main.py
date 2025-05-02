@@ -59,13 +59,14 @@ def transcribe_audio(path):
     return result["text"]
 
 # ======== Fichier à analyser ========
-file = "documents/audio2.mp3"  # Remplacez par le chemin de votre fichier audio ou image
+file = "documents/audio2.mp3" 
 
 # ======== Traitement du fichier ========
 if file.endswith(".mp3"):
     wav_path = "temp_audio.wav"
     convert_mp3_to_wav(file, wav_path)
     raw_text = transcribe_audio(wav_path)
+    os.remove(wav_path)
 elif file.endswith(".pdf"):
     raw_text = ocr_pdf(file)
 else:
