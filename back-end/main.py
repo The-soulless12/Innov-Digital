@@ -17,6 +17,12 @@ import pytesseract
 import fitz  # PyMuPDF
 import yake
 import whisper
+from flask_cors import CORS
+
+# Application Flask
+app = Flask(__name__)
+# Appliquer CORS
+CORS(app)
 
 # Configurations
 UPLOAD_DIR = "uploads"
