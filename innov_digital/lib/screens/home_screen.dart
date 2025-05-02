@@ -16,19 +16,20 @@ class HomeScreen extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: const [
-              TopBar(),
-              SizedBox(height: 20),
-              AISearchBar(),
-              SizedBox(height: 20),
-              Text(
-                'Recent Documents',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-              ),
-              SizedBox(height: 10),
-              Expanded(child: RecentDocumentsList()),
-              ActionButtons(),
-            ],
+            children: [
+  const TopBar(),
+  const SizedBox(height: 20),
+  const AISearchBar(),
+  const SizedBox(height: 20),
+  const Text(
+    'Recent Documents',
+    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+  ),
+  const SizedBox(height: 10),
+  const Expanded(child: RecentDocumentsList()),
+  ActionButtons(), // <- non-const
+],
+
           ),
         ),
       ),
