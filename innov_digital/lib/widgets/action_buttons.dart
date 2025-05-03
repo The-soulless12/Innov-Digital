@@ -52,16 +52,19 @@ class ActionButtons extends StatelessWidget {
                             ? null
                             : () async {
                               final uri = Uri.parse(
-                                'https://your-backend.com/upload',
+                                'http://10.0.2.2:5000/upload',
                               );
 
-                              var request = http.MultipartRequest('POST', uri)
-                                ..files.add(
-                                  await http.MultipartFile.fromPath(
-                                    'file',
-                                    selectedFile!.path,
-                                  ),
-                                );
+                              var request =
+                                  http.MultipartRequest('POST', uri)
+                                    ..fields['uploader'] =
+                                        'Oscar' // Ajout du champ uploader
+                                    ..files.add(
+                                      await http.MultipartFile.fromPath(
+                                        'file',
+                                        selectedFile!.path,
+                                      ),
+                                    );
 
                               var response = await request.send();
 
