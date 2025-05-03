@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 
 class TopBar extends StatelessWidget {
   const TopBar({super.key});
@@ -8,9 +9,9 @@ class TopBar extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        const Text(
-          'Hello, Tarek 👋',
-          style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+        SvgPicture.asset(
+          'assets/logo_Indexia.svg',
+          height: 35, // adjust as needed
         ),
         Row(
           children: const [
