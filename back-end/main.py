@@ -161,5 +161,148 @@ def upload_file():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route('/historique_user', methods=['GET'])
+def historique_user():
+    username = request.args.get('user')
+    if not username:
+        return jsonify({"error": "Paramètre 'user' manquant"}), 400
+
+    db = SessionLocal()
+
+    try:
+        # Tous les documents uploadés par l'utilisateur
+        docs = db.query(Document).filter(Document.uploader == username).all()
+
+        historique = []
+        for doc in docs:
+            # Récupère toutes les versions du document
+            versions = db.query(DocumentVersion).filter(DocumentVersion.document_id == doc.id).all()
+            historique.append({
+                "filename": doc.filename,
+                "uploaded_at": doc.uploaded_at.isoformat(),
+                "versions": [
+                    {
+                        "version_number": v.version_number,
+                        "uploaded_at": v.uploaded_at.isoformat()
+                    } for v in versions
+                ]
+            })
+
+        db.close()
+        return jsonify({"user": username, "documents": historique})
+
+    except Exception as e:
+        db.close()
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/toutavoir', methods=['GET'])
+def tout_avoir():
+    db = SessionLocal()
+
+    try:
+        docs = db.query(Document).all()
+        result = []
+
+        for doc in docs:
+            versions = db.query(DocumentVersion).filter(DocumentVersion.document_id == doc.id).all()
+            result.append({
+                "filename": doc.filename,
+                "uploader": doc.uploader,
+                "uploaded_at": doc.uploaded_at.isoformat(),
+                "keywords": doc.keywords,
+                "versions": [
+                    {
+                        "version_number": v.version_number,
+                        "uploaded_at": v.uploaded_at.isoformat()
+                    } for v in versions
+                ]
+            })
+
+        db.close()
+        return jsonify(result)
+
+    except Exception as e:
+        db.close()
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/versions_document', methods=['GET'])
+def versions_document():
+    filename = request.args.get('filename')
+
+    if not filename:
+        return jsonify({"error": "Paramètre 'filename' requis"}), 400
+
+    db = SessionLocal()
+
+    try:
+        doc = db.query(Document).filter(Document.filename == filename).first()
+        if not doc:
+            db.close()
+            return jsonify({"error": "Document non trouvé"}), 404
+
+        versions = db.query(DocumentVersion).filter(DocumentVersion.document_id == doc.id).order_by(DocumentVersion.version_number).all()
+        
+        result = {
+            "filename": doc.filename,
+            "uploader": doc.uploader,
+            "versions": [
+                {
+                    "version_number": v.version_number,
+                    "uploaded_at": v.uploaded_at.isoformat(),
+                    "keywords": v.keywords
+                } for v in versions
+            ]
+        }
+
+        db.close()
+        return jsonify(result)
+
+    except Exception as e:
+        db.close()
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/recherche_motscles', methods=['POST'])
+def recherche_motscles():
+    data = request.get_json()
+    keywords = data.get("keywords", [])
+
+    if not keywords or not isinstance(keywords, list):
+        return jsonify({"error": "Envoyez une liste de mots-clés via 'keywords'"}), 400
+
+    db = SessionLocal()
+    try:
+        result = []
+        docs = db.query(Document).all()
+
+        for doc in docs:
+            doc_keywords = [kw.strip().lower() for kw in doc.keywords.split(",")]
+            if any(kw.lower() in doc_keywords for kw in keywords):
+                result.append({
+                    "filename": doc.filename,
+                    "uploader": doc.uploader,
+                    "uploaded_at": doc.uploaded_at.isoformat(),
+                    "keywords": doc.keywords
+                })
+
+        db.close()
+        return jsonify(result)
+
+    except Exception as e:
+        db.close()
+        return jsonify({"error": str(e)}), 500
+
+engine = create_engine("sqlite:///db.sqlite3")
+SessionLocal = sessionmaker(bind=engine)
+db = SessionLocal()
+
+# Récupérer tous les documents de la table
+documents = db.query(Document).all()
+
+# Afficher les documents
+for doc in documents:
+    print(f"ID: {doc.id}, Filename: {doc.filename}, Uploader: {doc.uploader}, Keywords: {doc.keywords}, Uploaded At: {doc.uploaded_at}")
+
+# Fermer la session
+db.close()
 if __name__ == '__main__':
     app.run(debug=True)
