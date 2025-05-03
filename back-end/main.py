@@ -30,7 +30,7 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 # Tesseract
 pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
-os.environ["TESSDATA_PREFIX"] = r"C:\Program Files\Tesseract-OCR"
+os.environ["TESSDATA_PREFIX"] = r"C:\tessdata" 
 
 # DB
 engine = create_engine("sqlite:///db.sqlite3")
@@ -50,18 +50,26 @@ def clean_text(text):
 
 def ocr_image(path):
     img = Image.open(path)
-    os.environ["TESSDATA_PREFIX"] = r"C:\Program Files\Tesseract-OCR"
+    os.environ["TESSDATA_PREFIX"] = r"C:\tessdata" 
     return pytesseract.image_to_string(img, lang="fra")
 
 def ocr_pdf(path):
     text = ""
+    print("Traitement du PDF...")
     doc = fitz.open(path)
     for page in doc:
+        print(f"Traitement de la page {page.number + 1}...")
         pix = page.get_pixmap(dpi=300)
+        print(f"Page {page.number + 1} traitée.")
         temp_img = "temp_page.png"
+        print(f"Enregistrement de l'image temporaire : {temp_img}")
         pix.save(temp_img)
-        os.environ["TESSDATA_PREFIX"] = r"C:\Program Files\Tesseract-OCR"
+        print(f"Image temporaire enregistrée : {temp_img}")
+        print(os.environ.get("TESSDATA_PREFIX"))
+        print(f"Traitement de l'image avec Tesseract...")
+        os.environ["TESSDATA_PREFIX"] = r"C:\tessdata" 
         text += pytesseract.image_to_string(Image.open(temp_img), lang="fra") + "\n"
+        print(f"Texte extrait de la page {page.number + 1}.")
         os.remove(temp_img)
     return text
 
@@ -90,43 +98,78 @@ def filter_keywords(keywords):
 # Route pour uploader un fichier
 @app.route('/upload', methods=['POST'])
 def upload_file():
-    print("Réception du fichier...")
     file = request.files['file']
     uploader = request.form['uploader']
-    print(f"Fichier reçu : {file.filename} | Envoyé par : {uploader}")
-
     ext = os.path.splitext(file.filename)[1].lower()
     file_id = str(uuid.uuid4())
     saved_path = os.path.join(UPLOAD_DIR, file_id + ext)
 
     file.save(saved_path)
-    print(f"Fichier sauvegardé sous : {saved_path}")
 
     try:
         if ext == ".mp3":
-            print("Traitement audio en cours...")
             wav_path = os.path.join(UPLOAD_DIR, file_id + ".wav")
             convert_mp3_to_wav(saved_path, wav_path)
             raw_text = transcribe_audio(wav_path)
             os.remove(wav_path)
         elif ext == ".pdf":
-            print("OCR PDF en cours...")
             raw_text = ocr_pdf(saved_path)
         else:
-            print("OCR image en cours...")
             raw_text = ocr_image(saved_path)
 
-        print("Nettoyage du texte et extraction des mots-clés...")
         cleaned = clean_text(raw_text)
         keywords = filter_keywords(extract_keywords_yake(cleaned))
         kw_string = ", ".join([kw for kw, _ in keywords])
 
-        db = SessionLocal()
-        print("Connexion à la base de données réussie.")
+        # Date d'upload
+        upload_time = datetime.utcnow()
 
-        # ... reste du code ...
+        # Vérifier si le document existe déjà
+        db = SessionLocal()
+        doc = db.query(Document).filter(Document.filename == file.filename).first()
+
+        if doc is None:
+            # Si le document n'existe pas encore, on le crée
+            doc = Document(
+                filename=file.filename,
+                uploader=uploader,
+                content=cleaned,
+                keywords=kw_string,
+                uploaded_at=upload_time
+            )
+            db.add(doc)
+            db.commit()
+            db.refresh(doc)
+        
+        # Création de la nouvelle version
+        last_version = db.query(DocumentVersion).filter(DocumentVersion.document_id == doc.id).order_by(DocumentVersion.version_number.desc()).first()
+        version_number = last_version.version_number + 1 if last_version else 1
+        
+        new_version = DocumentVersion(
+            document_id=doc.id,
+            version_number=version_number,
+            filename=file.filename,
+            content=cleaned,
+            keywords=kw_string,
+            uploaded_at=upload_time
+        )
+        
+        db.add(new_version)
+        db.commit()
+        db.refresh(new_version)
+
+        db.close()
+
+        return jsonify({
+            "filename": file.filename,
+            "uploader": uploader,
+            "keywords": [kw for kw, _ in keywords],
+            "extracted_text": cleaned,
+            "uploaded_at": upload_time.isoformat(),
+            "version_number": version_number
+        })
+
     except Exception as e:
-        print(f"Erreur : {e}")
         return jsonify({"error": str(e)}), 500
 
 @app.route('/historique_user', methods=['GET'])

@@ -4,7 +4,6 @@ import '../widgets/press_chip.dart';
 class DocumentDetailPage extends StatelessWidget {
   final String docType;
   final String title;
-  final String author;
   final String lastModified;
   final List<String> keywords; // List of keywords (to be displayed as chips)
   final String content; // The content of the document
@@ -16,7 +15,6 @@ class DocumentDetailPage extends StatelessWidget {
     super.key,
     required this.docType,
     required this.title,
-    required this.author,
     required this.lastModified,
     required this.keywords,
     required this.content,
@@ -45,7 +43,6 @@ class DocumentDetailPage extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _buildInfoRow('Title', title),
-                    _buildInfoRow('Author', author),
                     _buildInfoRow('Last Modified', lastModified),
                     _buildInfoRow('Type', docType),
                   ],
@@ -98,18 +95,53 @@ class DocumentDetailPage extends StatelessWidget {
 
               const SizedBox(height: 20),
 
-              Center(
-                child: ElevatedButton(
-                  onPressed: () {
-                    // Add logic to open or edit the document
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF5B2682), // Corrected color parameter
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                  ),
-                  child: const Text('Edit Document'),
-                ),
+              Row(
+  mainAxisAlignment: MainAxisAlignment.center,
+  children: [
+    ElevatedButton(
+      onPressed: () {
+        // Logique pour éditer le document
+      },
+      style: ElevatedButton.styleFrom(
+        backgroundColor: const Color(0xFF5B2682),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+      ),
+      child: const Text('Modifier Document'),
+    ),
+    const SizedBox(width: 16),
+    OutlinedButton.icon(
+      onPressed: () {
+        // Logique pour afficher l'historique détaillé
+        // Tu peux rediriger vers une page dédiée si nécessaire
+        showDialog(
+          context: context,
+          builder: (_) => AlertDialog(
+            title: const Text('Document History'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: history.map((action) {
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4.0),
+                  child: Text('Action: ${action['action']} at ${action['timestamp']}'),
+                );
+              }).toList(),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Close'),
               ),
+            ],
+          ),
+        );
+      },
+      icon: const Icon(Icons.history),
+      label: const Text('Version Précedente'),
+    ),
+  ],
+),
+
             ],
           ),
         ),

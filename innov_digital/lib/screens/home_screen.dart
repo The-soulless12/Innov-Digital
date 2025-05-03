@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:innov_digital/widgets/Bottom_NavBar.dart';
 import '../widgets/top_bar.dart';
 import '../widgets/ai_search_bar.dart';
 import '../widgets/recent_documents_list.dart';
@@ -33,14 +34,7 @@ class HomeScreen extends StatelessWidget {
           ),
         ),
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: 0,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.folder), label: 'Documents'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
-        ],
-      ),
+      bottomNavigationBar: BottomNavBar(currentIndex: 0, context: context),
     );
   }
 }

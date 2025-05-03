@@ -5,7 +5,6 @@ import '../screens/document_detail_screen.dart';
 class DocumentCard extends StatelessWidget {
   final String docType; // "texte", "audio", "image"
   final String title;
-  final String author;
   final String lastModified;
   final List<String> keywords; // List of keywords to pass to the details page
   final String content; // Content of the document
@@ -15,15 +14,14 @@ class DocumentCard extends StatelessWidget {
 
   const DocumentCard({
     super.key,
-    required this.docType,
+    required this.docType, //extension
     required this.title,
-    required this.author,
-    required this.lastModified,
-    required this.keywords,
+    required this.lastModified, //men history
+    required this.keywords, 
     required this.content,
-    required this.uploadedBy,
-    required this.uploadedAt,
-    required this.history,
+    required this.uploadedBy, //uploader
+    required this.uploadedAt, //upload timestamp
+    required this.history, 
   });
 
   String _getAssetForType(String type) {
@@ -53,7 +51,6 @@ class DocumentCard extends StatelessWidget {
               builder: (context) => DocumentDetailPage(
                 docType: docType,
                 title: title,
-                author: author,
                 lastModified: lastModified,
                 keywords: keywords,
                 content: content,
@@ -89,7 +86,7 @@ class DocumentCard extends StatelessWidget {
               const SizedBox(width: 6),
               Expanded(
                 child: Text(
-                  author,
+                  uploadedBy,
                   style: Theme.of(context).textTheme.bodySmall,
                   overflow: TextOverflow.ellipsis,
                 ),

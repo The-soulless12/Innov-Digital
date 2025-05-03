@@ -109,13 +109,7 @@ class ActionButtons extends StatelessWidget {
             label: 'Add Document',
             onPressed: () => _showAddDocumentDialog(context),
           ),
-          ActionButton(
-            icon: Icons.history,
-            label: 'History',
-            onPressed: () {
-              // Add action for history
-            },
-          ),
+          
         ],
       ),
     );

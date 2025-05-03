@@ -11,7 +11,6 @@ class RecentDocumentsList extends StatelessWidget {
       {
         'type': 'texte',
         'title': 'Compte rendu',
-        'author': 'Alice',
         'modified': 'Aujourd\'hui',
         'keywords': ['rapport', 'réunion'],
         'content': 'Contenu du compte rendu...',
@@ -24,7 +23,6 @@ class RecentDocumentsList extends StatelessWidget {
       {
         'type': 'audio',
         'title': 'Interview Radio',
-        'author': 'Bob',
         'modified': 'Hier',
         'keywords': ['interview', 'radio'],
         'content': 'Contenu de l\'interview...',
@@ -37,7 +35,6 @@ class RecentDocumentsList extends StatelessWidget {
       {
         'type': 'image',
         'title': 'Scan Ordonnance',
-        'author': 'Carla',
         'modified': 'Il y a 2 jours',
         'keywords': ['ordonnance', 'scan'],
         'content': 'Contenu de l\'ordonnance...',
@@ -56,11 +53,9 @@ class RecentDocumentsList extends StatelessWidget {
         return DocumentCard(
           docType: doc['type'] as String, // Cast to String
           title: doc['title'] as String, // Cast to String
-          author: doc['author'] as String, // Cast to String
           lastModified: formatTimeAgo(
   (doc['history'] as List).last['timestamp'] as DateTime,
 ),
-
           keywords: List<String>.from(doc['keywords'] as List), // Cast to List<String>
           content: doc['content'] as String, // Cast to String
           uploadedBy: doc['uploadedBy'] as String, // Cast to String

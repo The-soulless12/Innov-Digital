@@ -2,6 +2,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_switch/flutter_switch.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class AISearchBar extends StatefulWidget {
   const AISearchBar({super.key});
@@ -16,13 +18,15 @@ class _AISearchBarState extends State<AISearchBar> {
   Timer? _timer;
   final TextEditingController _controller = TextEditingController();
   final List<String> keywords = [];
+  bool _isLoading = false;
+  List<dynamic> _results = [];
 
   @override
   void initState() {
     super.initState();
     _setDisplayText(isKeywordMode);
   }
-
+  
   void _startTypewriterEffect(String newText) {
     int charIndex = 0;
     setState(() {
@@ -58,6 +62,33 @@ class _AISearchBarState extends State<AISearchBar> {
     }
     _controller.clear();
   }
+  Future<void> _searchByKeywords() async {
+  if (keywords.isEmpty) return;
+
+  final url = Uri.parse('http://10.0.2.2:5000/recherche_motscles'); // replace with your IP
+
+  try {
+    final response = await http.post(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'keywords': keywords}),
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      // TODO: handle `data`, e.g., display results or pass to parent
+       setState(() {
+          _results = data;
+        });
+      print('Documents trouvés : $data');
+    } else {
+      print('Erreur serveur : ${response.statusCode}');
+    }
+  } catch (e) {
+    print('Erreur de connexion : $e');
+  }
+  setState(() => _isLoading = false);
+}
 
   @override
   Widget build(BuildContext context) {
@@ -126,11 +157,15 @@ class _AISearchBarState extends State<AISearchBar> {
                       height: 24,
                     ),
                     const SizedBox(width: 12),
-                    SvgPicture.asset(
-                      'assets/send.svg',
-                      width: 24,
-                      height: 24,
-                    ),
+                    GestureDetector(
+  onTap: _searchByKeywords,
+  child: SvgPicture.asset(
+    'assets/send.svg',
+    width: 24,
+    height: 24,
+  ),
+),
+
                   ],
                 ),
               ),
@@ -150,6 +185,23 @@ class _AISearchBarState extends State<AISearchBar> {
                           keywords.remove(keyword);
                         });
                       },
+                    ))
+                .toList(),
+          ),
+  
+        const SizedBox(height: 10),
+
+        // Loading spinner
+        if (_isLoading) const CircularProgressIndicator(),
+
+        // Results list
+        if (_results.isNotEmpty)
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: _results
+                .map((doc) => ListTile(
+                      leading: const Icon(Icons.description),
+                      title: Text(doc.toString()), // Customize display as needed
                     ))
                 .toList(),
           ),
