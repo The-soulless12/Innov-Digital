@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:innov_digital/screens/All_documents_screen.dart';
+import 'package:innov_digital/screens/SplashScreen.dart';
 import 'package:innov_digital/screens/profile_screen.dart';
 import 'screens/home_screen.dart';
 
@@ -21,8 +22,9 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
       ),
       debugShowCheckedModeBanner: false,
-      initialRoute: '/home',
+      initialRoute: '/splash',  // Utilise la route pour l'écran de démarrage
       routes: {
+        '/splash': (_) => SplashScreen(),
         '/home': (_) => const HomeScreen(),
         '/documents': (_) => AllDocumentsPage(),
         '/profile': (_) => const ProfileScreen(),

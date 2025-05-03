@@ -41,13 +41,22 @@ class _AllDocumentsPageState extends State<AllDocumentsPage> with RouteAware {
     // Called when returning to this screen
     fetchDocuments();
   }
-
+  String getDocumentType(String filename) {
+  final ext = filename.split('.').last.toLowerCase();  // Récupère l'extension du fichier
+  if (['mp3', 'mp4', 'avi'].contains(ext)) {
+    return 'audio';  // Si l'extension est audio
+  } else if (['png', 'jpg', 'jpeg'].contains(ext)) {
+    return 'image';  // Si l'extension est image
+  } else {
+    return 'texte';  // Sinon, considère comme texte
+  }
+}
   Future<void> fetchDocuments() async {
     setState(() => isLoading = true);
 
     try {
       final response = await http.get(Uri.parse('http://10.0.2.2:5000/toutavoir'));
-
+      print(response.body);
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
 
@@ -57,11 +66,11 @@ class _AllDocumentsPageState extends State<AllDocumentsPage> with RouteAware {
               ? DateTime.parse(versions.last['uploaded_at'])
               : DateTime.parse(doc['uploaded_at']);
           return {
-            'docType': 'texte',
+            'docType':getDocumentType(doc['filename']),
             'title': doc['filename'],
             'lastModified': formatTimeAgo(lastUploadTime),
-            'keywords': (doc['keywords'] as List<dynamic>).cast<String>(),
-            'content': doc['extracted_text'] ?? 'No content',
+           'keywords': (doc['keywords'] as String).split(',').map((s) => s.trim()).toList(),
+            'content': doc['extracted_text'] ?? "no content available" ,
             'uploadedBy': doc['uploader'],
             'uploadedAt': DateTime.parse(doc['uploaded_at']),
             'history': versions.map((v) {

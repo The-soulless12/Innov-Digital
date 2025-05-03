@@ -205,6 +205,100 @@ def historique_user():
     except Exception as e:
         db.close()
         return jsonify({"error": str(e)}), 500
+# Chargement du modèle et tokenizer
+model_name = "t5-base"
+#model = T5ForConditionalGeneration.from_pretrained(model_name)
+#tokenizer = T5Tokenizer.from_pretrained(model_name)
+
+# def generate_explanation(text1, text2):
+#    input_text = f"Explain the difference between the following two sentences: {text1} and {text2}"
+  #  inputs = tokenizer.encode(input_text, return_tensors="pt", truncation=True, padding=True)
+   # outputs = model.generate(inputs, max_length=100, num_beams=4, early_stopping=True)
+    #explanation = tokenizer.decode(outputs[0], skip_special_tokens=True)
+    #return explanation
+
+@app.route('/assistant-vocal', methods=['POST'])
+def assistant_vocal_route():
+    try:
+        data = request.json
+        doc1 = data.get("doc1", "")
+        doc2 = data.get("doc2", "")
+
+        if not doc1 or not doc2:
+            return jsonify({"error": "Les deux documents doivent être fournis."}), 400
+
+        # Génération de l'explication
+        #explanation = generate_explanation(doc1, doc2)
+
+        # Conversion vocale
+        #tts = gTTS(text=explanation, lang='fr')
+        audio_path = "temp_vocal.mp3"
+        #tts.save(audio_path)
+        #playsound(audio_path)
+        os.remove(audio_path)
+
+        #return jsonify({"explanation": explanation})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+@app.route('/chatbot', methods=['POST'])
+def chatbot():
+    try:
+        # Traitement du texte ou fichier
+        if 'file' in request.files:
+            file = request.files['file']
+            ext = os.path.splitext(file.filename)[1].lower()
+
+            if ext != ".mp3":
+                return jsonify({"error": "Seuls les fichiers audio .mp3 sont acceptés"}), 400
+
+            file_id = str(uuid.uuid4())
+            saved_path = os.path.join(UPLOAD_DIR, file_id + ext)
+            file.save(saved_path)
+
+            wav_path = os.path.join(UPLOAD_DIR, file_id + ".wav")
+            convert_mp3_to_wav(saved_path, wav_path)
+            raw_text = transcribe_audio(wav_path)
+            os.remove(wav_path)
+            os.remove(saved_path)
+
+        else:
+            data = request.get_json()
+            if not data or "text" not in data:
+                return jsonify({"error": "Paramètre 'text' requis si aucun fichier n'est fourni"}), 400
+            raw_text = data["text"]
+
+        # Nettoyage & extraction de mots-clés
+        cleaned = clean_text(raw_text)
+        keywords = filter_keywords(extract_keywords_yake(cleaned))
+        filtered_keywords = [kw for kw, _ in keywords]
+
+        if not filtered_keywords:
+            return jsonify({"message": "Aucun mot-clé pertinent trouvé."}), 200
+
+        # Recherche dans la base
+        db = SessionLocal()
+        result = []
+        docs = db.query(Document).all()
+
+        for doc in docs:
+            doc_keywords = [kw.strip().lower() for kw in doc.keywords.split(",")]
+            if any(kw.lower() in doc_keywords for kw in filtered_keywords):
+                result.append({
+                    "filename": doc.filename,
+                    "uploader": doc.uploader,
+                    "uploaded_at": doc.uploaded_at.isoformat(),
+                    "keywords": doc.keywords
+                })
+
+        db.close()
+
+        return jsonify({
+            "keywords_extraits": filtered_keywords,
+            "documents_trouves": result
+        })
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/toutavoir', methods=['GET'])
 def tout_avoir():
@@ -217,6 +311,7 @@ def tout_avoir():
         for doc in docs:
             versions = db.query(DocumentVersion).filter(DocumentVersion.document_id == doc.id).all()
             result.append({
+                "extracted_text": doc.content,
                 "filename": doc.filename,
                 "uploader": doc.uploader,
                 "uploaded_at": doc.uploaded_at.isoformat(),

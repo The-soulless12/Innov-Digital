@@ -39,7 +39,9 @@ dependencies:
   http: ^0.13.6
   path: ^1.8.3
   flutter_switch: ^0.3.2
-  
+  flutter_spinkit: ^5.1.0 
+  audioplayers: ^5.2.1
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -64,6 +66,7 @@ flutter:
           weight: 700
   assets:
     - assets/
+    - assets/sound.mp3
     - assets/Robot.svg
     - assets/microphone-2.svg
     - assets/text.svg

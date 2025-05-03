@@ -27,7 +27,7 @@ class HomeScreen extends StatelessWidget {
     style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
   ),
   const SizedBox(height: 10),
-  const Expanded(child: RecentDocumentsList()),
+   Expanded(child: RecentDocumentsPage()),
   ActionButtons(), // <- non-const
 ],
 
