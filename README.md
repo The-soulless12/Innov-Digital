@@ -18,4 +18,4 @@ Application mobile d’indexation intelligente multi-canal intégrant OCR, recon
 - Les packages : spacy, pillow, pytesseract, PyMuPDF, yake, whisper, torch, torchaudio & ffmpeg-python.
 
 # Note
-- Pour exécuter le projet, saisissez la commande `flutter run` dans le répertoire `front-end/` afin de lancer l’application mobile puis, dans un autre terminal, placez-vous dans le répertoire `back-end/` et exécutez la commande `python main.py` pour démarrer le serveur.
+- Pour exécuter le projet, commencez par lancer le serveur avec la commande `python main.py` dans le répertoire `back-end/`, puis, dans un autre terminal, exécutez la commande `flutter run` dans le répertoire `front-end/` pour démarrer l’application mobile.
